@@ -15,7 +15,7 @@ export class AuthService{
         try {
             const data = await this.account.create(ID.unique(),email,password,name);
             if(data){
-                return this.login({email,password})
+                return this.login({email,password})           // Insures if the user is created successfully then redirect login the user
             }
             else{
                 return data
@@ -48,6 +48,7 @@ export class AuthService{
             return await this.account.deleteSessions();
         } catch (error) {
             throw error;
+            return false;
         }
     }
 
