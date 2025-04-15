@@ -1,4 +1,4 @@
-import conf from "../confi/conf";
+import conf from "../conf/conf.js";
 import {Client, Databases, ID, Storage, Query} from "appwrite";
 
 export class Service{
@@ -52,13 +52,15 @@ export class Service{
     }
     async deletePost(slug){
         try {
-            return await this.databases.deleteDocument(
+            await this.databases.deleteDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 slug,
             )
+            return true
         } catch (error) {
             throw error;
+            return false
         }
     }
     async getPost(slug){
@@ -99,12 +101,14 @@ export class Service{
     }
     async deleteFile(fileId){
         try {
-            return await this.bucket.deleteFile(
+            await this.bucket.deleteFile(
                 conf.appwriteBucketId,
                 fileId
             )
+            return true;
         } catch (error) {
             throw error;
+            return false;
         }
     }
     getFilePreview(fileId){
