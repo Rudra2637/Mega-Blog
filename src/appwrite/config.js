@@ -111,12 +111,10 @@ export class Service{
             return false;
         }
     }
-    getFilePreview(fileId){
-        return this.bucket.getFilePreview(
-            conf.appwriteBucketId,
-            fileId,
-        )
-    }
+    getFileView(fileId) {
+        return this.bucket.getFileView(conf.appwriteBucketId, fileId);
+      }
+      
 
 }
 
