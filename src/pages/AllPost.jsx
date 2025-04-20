@@ -1,30 +1,37 @@
-import React, {useState, useEffect} from 'react'
+import React, { useEffect } from 'react'
 import { Container, PostCard } from '../components/index'
 import appwriteService from "../appwrite/config";
+import { selectPosts, setPosts } from '../store/postSlice';
+import { useSelector, useDispatch } from 'react-redux';
 
 function AllPosts() {
-    const [posts, setPosts] = useState([])
+    const dispatch = useDispatch()
+    const posts = useSelector(selectPosts)
+
     useEffect(() => {
-        appwriteService.getPosts([]).then((posts) => {
-            if (posts) {
-                setPosts(posts.documents)
-            }
-        })
+        if (posts.length === 0) {
+            appwriteService.getPosts().then((res) => {
+                if (res) {
+                    dispatch(setPosts(res.documents))
+                }
+            })
+        }
     }, [])
     
-  return (
-    <div className='w-full py-8'>
-        <Container>
-            <div className='flex flex-wrap'>
-                {posts.map((post) => (
-                    <div key={post.$id} className='p-2 w-1/4'>
-                        <PostCard {...post} />
-                    </div>
-                ))}
-            </div>
+
+    return (
+        <div className='w-full py-8'>
+            <Container>
+                <div className='flex flex-wrap'>
+                    {posts.map((item) => (
+                        <div key={item.$id} className='p-2 w-1/4'>
+                            <PostCard {...item} />
+                        </div>
+                    ))}
+                </div>
             </Container>
-    </div>
-  )
+        </div>
+    )
 }
 
 export default AllPosts

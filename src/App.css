@@ -1,16 +1,18 @@
+/* Reset layout constraints */
 #root {
-  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 0;
 }
 
+/* Optional logo styles */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
@@ -18,6 +20,7 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
+/* Animation for logo (optional) */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -33,10 +36,12 @@
   }
 }
 
+/* Optional card styling */
 .card {
   padding: 2em;
 }
 
+/* Optional text styling */
 .read-the-docs {
   color: #888;
 }
