@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import appwriteService from "../appwrite/config"
 import { useSelector } from "react-redux"
 import { Container, PostCard } from "../components"
+import {Link} from 'react-router-dom'
 
 function Home() {
   const [posts, setPosts] = useState([])
@@ -36,18 +37,18 @@ function Home() {
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp animation-delay-300">
-              <a
-                href="/login"
+              <Link
+                to="/login"
                 className="px-8 py-3 bg-purple-600 text-white rounded-full font-medium shadow-lg hover:bg-purple-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl"
               >
                 Login
-              </a>
-              <a
-                href="/signup"
+              </Link>
+              <Link
+                to="/signup"
                 className="px-8 py-3 bg-white text-purple-600 border border-purple-200 rounded-full font-medium shadow-md hover:bg-gray-50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
               >
                 Sign Up
-              </a>
+              </Link>
             </div>
 
             <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 animate-fadeInUp animation-delay-400">
@@ -77,12 +78,12 @@ function Home() {
           <p className="text-gray-500 mb-6 animate-fadeInUp animation-delay-200">Let's create something awesome!</p>
 
           <div className="mb-10 animate-fadeInUp animation-delay-300">
-            <a
-              href="/add-post"
+            <Link
+              to="/add-post"
               className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl"
             >
               ➕ Add Your First Post
-            </a>
+            </Link>
           </div>
 
           {/* Fancy placeholder posts with staggered animation */}
