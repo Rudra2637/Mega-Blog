@@ -24,38 +24,52 @@ export default function PostForm({ post }) {
   const userData = useSelector((state) => state.auth.userData)
 
   const submit = async (data) => {
-    if (post) {
-      const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null
-
-      if (file) {
-        appwriteService.deleteFile(post.featuredImage)
-      }
-
-      const dbPost = await appwriteService.updatePost(post.$id, {
-        ...data,
-        featuredImage: file ? file.$id : undefined,
-      })
-
-      if (dbPost) {
-        dispatch(addPost(dbPost))
-        navigate(`/post/${dbPost.$id}`)
-      }
-    } else {
-      const file = await appwriteService.uploadFile(data.image[0])
-
-      if (file) {
-        const fileId = file.$id
-        data.featuredImage = fileId
-
-        const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id })
-
-        if (dbPost) {
-          dispatch(addPost(dbPost))
-          navigate(`/post/${dbPost.$id}`)
+    try {
+      let file;
+      if (data.image[0]) {
+        file = await appwriteService.uploadFile(data.image[0]);
+        if (!file) {
+          console.error("File upload failed");
+          return; // Exit if file upload fails
         }
       }
+  
+      if (post) {
+        // Update existing post
+        if (file) {
+          appwriteService.deleteFile(post.featuredImage); // Delete old image if new one is uploaded
+        }
+  
+        const dbPost = await appwriteService.updatePost(post.$id, {
+          ...data,
+          featuredImage: file ? file.$id : post.featuredImage, // Use old image if no new file
+        });
+  
+        if (dbPost) {
+          dispatch(addPost(dbPost));
+          navigate(`/post/${dbPost.$id}`);
+        } else {
+          console.error("Failed to update post");
+        }
+      } else {
+        // Create new post
+        const dbPost = await appwriteService.createPost({
+          ...data,
+          userId: userData.$id,
+          featuredImage: file ? file.$id : undefined, // Set featuredImage if file is uploaded
+        });
+  
+        if (dbPost) {
+          dispatch(addPost(dbPost));
+          navigate(`/post/${dbPost.$id}`);
+        } else {
+          console.error("Failed to create post");
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
     }
-  }
+  };
 
   const slugTransform = useCallback((value) => {
     if (value && typeof value === "string")
