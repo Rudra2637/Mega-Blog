@@ -5,9 +5,8 @@ import { useForm } from "react-hook-form"
 import { Button, Input, RTE, Select } from ".."
 import appwriteService from "../../appwrite/config"
 import { useNavigate } from "react-router-dom"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import { addPost } from "../../store/postSlice"
-import { useDispatch } from "react-redux"
 
 export default function PostForm({ post }) {
   const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
@@ -16,6 +15,7 @@ export default function PostForm({ post }) {
       slug: post?.$id || "",
       content: post?.content || "",
       status: post?.status || "active",
+      image: []   // ✅ Important: initialize image field
     },
   })
 
@@ -25,64 +25,55 @@ export default function PostForm({ post }) {
 
   const submit = async (data) => {
     try {
-      if (!userData) {
-        console.error("User not logged in or session expired.");
-        navigate("/login");  // Optional: force user to login again
-        return;
-      }
-  
-      let file;
-      if (data.image[0]) {
-        file = await appwriteService.uploadFile(data.image[0]);
-        if (!file) {
-          console.error("File upload failed");
-          return;
-        }
-      }
-  
       if (post) {
+        const file = data.image?.[0] ? await appwriteService.uploadFile(data.image[0]) : null
+
         if (file) {
-          appwriteService.deleteFile(post.featuredImage);
+          await appwriteService.deleteFile(post.featuredImage)
         }
-  
+
         const dbPost = await appwriteService.updatePost(post.$id, {
           ...data,
           featuredImage: file ? file.$id : post.featuredImage,
-        });
-  
+        })
+
         if (dbPost) {
-          dispatch(addPost(dbPost));
-          navigate(`/post/${dbPost.$id}`);
-        } else {
-          console.error("Failed to update post");
+          dispatch(addPost(dbPost))
+          navigate(`/post/${dbPost.$id}`)
         }
       } else {
-        const dbPost = await appwriteService.createPost({
-          ...data,
-          userId: userData.$id, // ✅ Now safe because checked above
-          featuredImage: file ? file.$id : undefined,
-        });
-  
-        if (dbPost) {
-          dispatch(addPost(dbPost));
-          navigate(`/post/${dbPost.$id}`);
-        } else {
-          console.error("Failed to create post");
+        if (!data.image || data.image.length === 0) {
+          console.error("No image selected")
+          return
+        }
+
+        const file = await appwriteService.uploadFile(data.image[0])
+
+        if (file) {
+          const fileId = file.$id
+          data.featuredImage = fileId
+
+          const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id })
+
+          if (dbPost) {
+            dispatch(addPost(dbPost))
+            navigate(`/post/${dbPost.$id}`)
+          }
         }
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Submission error:", error)
     }
-  };
-  
+  }
 
   const slugTransform = useCallback((value) => {
     if (value && typeof value === "string")
       return value
         .trim()
         .toLowerCase()
-        .replace(/[^a-zA-Z\d\s]+/g, "-")
-        .replace(/\s/g, "-")
+        .replace(/[^a-zA-Z\d\s-]/g, "")   // allow hyphens
+        .replace(/\s+/g, "-")              // replace spaces
+        .replace(/-+/g, "-")                // replace multiple hyphens
     return ""
   }, [])
 
@@ -95,6 +86,13 @@ export default function PostForm({ post }) {
 
     return () => subscription.unsubscribe()
   }, [watch, slugTransform, setValue])
+
+  const handleImageChange = (e) => {
+    const fileList = e.target.files
+    if (fileList.length > 0) {
+      setValue("image", fileList, { shouldValidate: true })
+    }
+  }
 
   return (
     <div className="w-full px-4 py-10 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 animate-fadeIn">
@@ -140,7 +138,7 @@ export default function PostForm({ post }) {
                 type="file"
                 className="transition"
                 accept="image/png, image/jpg, image/jpeg, image/gif"
-                {...register("image", { required: !post })}
+                onChange={handleImageChange}   // ✅ Control image manually
               />
               {post && (
                 <div className="overflow-hidden rounded-lg shadow hover:shadow-lg transition duration-300">
