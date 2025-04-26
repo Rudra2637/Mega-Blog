@@ -25,24 +25,29 @@ export default function PostForm({ post }) {
 
   const submit = async (data) => {
     try {
+      if (!userData) {
+        console.error("User not logged in or session expired.");
+        navigate("/login");  // Optional: force user to login again
+        return;
+      }
+  
       let file;
       if (data.image[0]) {
         file = await appwriteService.uploadFile(data.image[0]);
         if (!file) {
           console.error("File upload failed");
-          return; // Exit if file upload fails
+          return;
         }
       }
   
       if (post) {
-        // Update existing post
         if (file) {
-          appwriteService.deleteFile(post.featuredImage); // Delete old image if new one is uploaded
+          appwriteService.deleteFile(post.featuredImage);
         }
   
         const dbPost = await appwriteService.updatePost(post.$id, {
           ...data,
-          featuredImage: file ? file.$id : post.featuredImage, // Use old image if no new file
+          featuredImage: file ? file.$id : post.featuredImage,
         });
   
         if (dbPost) {
@@ -52,11 +57,10 @@ export default function PostForm({ post }) {
           console.error("Failed to update post");
         }
       } else {
-        // Create new post
         const dbPost = await appwriteService.createPost({
           ...data,
-          userId: userData.$id,
-          featuredImage: file ? file.$id : undefined, // Set featuredImage if file is uploaded
+          userId: userData.$id, // ✅ Now safe because checked above
+          featuredImage: file ? file.$id : undefined,
         });
   
         if (dbPost) {
@@ -70,6 +74,7 @@ export default function PostForm({ post }) {
       console.error("Error submitting form:", error);
     }
   };
+  
 
   const slugTransform = useCallback((value) => {
     if (value && typeof value === "string")
