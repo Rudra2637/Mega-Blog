@@ -5,6 +5,7 @@ import appwriteService from "../../appwrite/config";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+
 export default function PostForm({ post }) {
     const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
         defaultValues: {
@@ -15,6 +16,7 @@ export default function PostForm({ post }) {
         },
     });
 
+    
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
 
@@ -32,6 +34,7 @@ export default function PostForm({ post }) {
             });
 
             if (dbPost) {
+              
                 navigate(`/post/${dbPost.$id}`);
             }
         } else {
@@ -43,6 +46,7 @@ export default function PostForm({ post }) {
                 const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id });
 
                 if (dbPost) {
+                  
                     navigate(`/post/${dbPost.$id}`);
                 }
             }
@@ -101,7 +105,7 @@ export default function PostForm({ post }) {
                 {post && (
                     <div className="w-full mb-4">
                         <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
+                            src={appwriteService.getFileView(post.featuredImage)}
                             alt={post.title}
                             className="rounded-lg"
                         />
