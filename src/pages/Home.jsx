@@ -1,29 +1,59 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import appwriteService from "../appwrite/config"
-import { useSelector } from "react-redux"
-import { Container, PostCard } from "../components"
-import {Link} from 'react-router-dom'
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { Container, PostCard } from "../components";
+import appwriteService from "../appwrite/config";
+import authService from "../appwrite/auth"; // Import your auth service
+import { login, logout } from "../store/authSlice";
 
 function Home() {
-  const [posts, setPosts] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const selector = useSelector((state) => state.auth.status)
-  const user = useSelector((state) => state.auth.userData)
+  const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const selector = useSelector((state) => state.auth.status);
+  const user = useSelector((state) => state.auth.userData);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    setIsLoading(true)
-    appwriteService.getPosts().then((posts) => {
-      if (posts) {
-        setPosts(posts.documents)
-      }
-      setIsLoading(false)
-    })
-  }, [])
+    async function checkUserAndLoadPosts() {
+      try {
+        // If not logged in according to Redux, try to fetch user
+        if (!selector) {
+          const userData = await authService.getCurrentUser();
+          if (userData) {
+            dispatch(login({ userData })); // If found, update Redux
+          } else {
+            dispatch(logout()); // If not found, mark as guest
+          }
+        }
 
-  // Not logged in
-  if (selector === false) {
+        // Always try to load posts
+        const posts = await appwriteService.getPosts();
+        if (posts) {
+          setPosts(posts.documents);
+        }
+      } catch (error) {
+        console.error("Error loading user or posts:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkUserAndLoadPosts();
+  }, [dispatch, selector]);
+
+  // 🔥 Show loading spinner if still checking
+  if (isLoading) {
+    return (
+      <div className="w-full flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="loader"></div>
+      </div>
+    );
+  }
+
+  // 🔥 Not logged in
+  if (!selector) {
     return (
       <div className="w-full py-16 text-center bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen animate-fadeIn">
         <Container>
@@ -57,17 +87,25 @@ function Home() {
                 title="Write Stories"
                 description="Create beautiful blog posts with a rich text editor"
               />
-              <FeatureCard icon="🌐" title="Share Globally" description="Reach readers from around the world" />
-              <FeatureCard icon="💬" title="Engage Community" description="Build a community around your content" />
+              <FeatureCard
+                icon="🌐"
+                title="Share Globally"
+                description="Reach readers from around the world"
+              />
+              <FeatureCard
+                icon="💬"
+                title="Engage Community"
+                description="Build a community around your content"
+              />
             </div>
           </div>
         </Container>
       </div>
-    )
+    );
   }
 
-  // Logged in but no posts yet
-  if (posts.length === 0 && !isLoading) {
+  // 🔥 Logged in but no posts
+  if (posts.length === 0) {
     return (
       <div className="w-full py-16 text-center bg-gradient-to-br from-yellow-50 to-orange-100 min-h-screen animate-fadeIn">
         <Container>
@@ -86,12 +124,12 @@ function Home() {
             </Link>
           </div>
 
-          {/* Fancy placeholder posts with staggered animation */}
+          {/* Fancy placeholder posts */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className={`bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 animate-fadeInUp`}
+                className="bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 animate-fadeInUp"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 <div className="h-36 bg-gray-200 rounded-md mb-4 animate-pulse"></div>
@@ -102,10 +140,10 @@ function Home() {
           </div>
         </Container>
       </div>
-    )
+    );
   }
 
-  // Posts available
+  // 🔥 Logged in and posts exist
   return (
     <div className="w-full py-10 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen animate-fadeIn">
       <Container>
@@ -119,19 +157,13 @@ function Home() {
           Latest Posts 📰
         </h2>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            <div className="loader"></div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {posts.map((post, index) => (
-              <div key={post.$id} className="animate-fadeInUp" style={{ animationDelay: `${index * 0.05}s` }}>
-                <PostCard {...post} />
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {posts.map((post, index) => (
+            <div key={post.$id} className="animate-fadeInUp" style={{ animationDelay: `${index * 0.05}s` }}>
+              <PostCard {...post} />
+            </div>
+          ))}
+        </div>
 
         <div className="mt-12 text-center animate-fadeInUp animation-delay-300">
           <button className="px-6 py-3 bg-purple-600 text-white rounded-full font-medium shadow-lg hover:bg-purple-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
@@ -140,97 +172,40 @@ function Home() {
         </div>
       </Container>
 
+      {/* Your CSS animations (keep yours as you had) */}
       <style jsx="true">{`
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                
-                @keyframes fadeInUp {
-                    from { 
-                        opacity: 0;
-                        transform: translateY(20px);
-                    }
-                    to { 
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                
-                @keyframes scaleIn {
-                    from { 
-                        transform: scaleX(0);
-                    }
-                    to { 
-                        transform: scaleX(1);
-                    }
-                }
-                
-                @keyframes wave {
-                    0% { transform: rotate(0deg); }
-                    10% { transform: rotate(14deg); }
-                    20% { transform: rotate(-8deg); }
-                    30% { transform: rotate(14deg); }
-                    40% { transform: rotate(-4deg); }
-                    50% { transform: rotate(10deg); }
-                    60% { transform: rotate(0deg); }
-                    100% { transform: rotate(0deg); }
-                }
-                
-                .animate-fadeIn {
-                    animation: fadeIn 0.6s ease-out forwards;
-                }
-                
-                .animate-fadeInUp {
-                    animation: fadeInUp 0.8s ease-out forwards;
-                }
-                
-                .animate-scaleIn {
-                    animation: scaleIn 0.8s ease-out forwards;
-                }
-                
-                .animate-wave {
-                    animation: wave 2.5s infinite;
-                }
-                
-                .animation-delay-100 {
-                    animation-delay: 0.1s;
-                }
-                
-                .animation-delay-200 {
-                    animation-delay: 0.2s;
-                }
-                
-                .animation-delay-300 {
-                    animation-delay: 0.3s;
-                }
-                
-                .animation-delay-400 {
-                    animation-delay: 0.4s;
-                }
-                
-                .animation-delay-500 {
-                    animation-delay: 0.5s;
-                }
-                
-                .loader {
-                    border: 4px solid rgba(0, 0, 0, 0.1);
-                    border-left-color: #9333ea;
-                    border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
-                    animation: spin 1s linear infinite;
-                }
-                
-                @keyframes spin {
-                    to { transform: rotate(360deg); }
-                }
-            `}</style>
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+          from { transform: scaleX(0); }
+          to { transform: scaleX(1); }
+        }
+        @keyframes wave {
+          0% { transform: rotate(0deg); }
+          10% { transform: rotate(14deg); }
+          20% { transform: rotate(-8deg); }
+          30% { transform: rotate(14deg); }
+          40% { transform: rotate(-4deg); }
+          50% { transform: rotate(10deg); }
+          60% { transform: rotate(0deg); }
+          100% { transform: rotate(0deg); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
+        .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+        .animate-scaleIn { animation: scaleIn 0.8s ease-out forwards; }
+        .animate-wave { animation: wave 2.5s infinite; }
+      `}</style>
     </div>
-  )
+  );
 }
 
-// Feature card component for the login page
+// Feature card component
 function FeatureCard({ icon, title, description }) {
   return (
     <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
@@ -238,7 +213,7 @@ function FeatureCard({ icon, title, description }) {
       <h3 className="text-lg font-semibold text-gray-800 mb-2">{title}</h3>
       <p className="text-gray-600 text-sm">{description}</p>
     </div>
-  )
+  );
 }
 
-export default Home
+export default Home;

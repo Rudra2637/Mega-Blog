@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import { Link } from "react-router-dom"
-import Logo from "../Logo"
-import { FaTwitter, FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa"
+import { Link } from "react-router-dom";
+import Logo from "../Logo";
+import { FaTwitter, FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa";
 
 function Footer() {
   return (
-    <section className="relative overflow-hidden py-16 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950 text-white border-t border-gray-700">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 background-animate"></div>
+    <section
+      className="relative overflow-hidden py-16 text-white border-t border-[#2d223d]"
+      style={{
+        background: "linear-gradient(135deg, #1A1125 0%, #160C22 100%)",
+      }}
+    >
+      {/* Top animated border */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#6B5AED] via-[#9D4EDD] to-[#6B5AED] background-animate"></div>
 
       {/* Animated particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -29,12 +35,16 @@ function Footer() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          {/* Logo and Social */}
           <div className="transform transition-all duration-300 hover:translate-y-[-5px]">
-            <Logo width="120px" />
+            <Link to="/" className="inline-block">
+              <Logo width="120px" />
+            </Link>
             <p className="mt-4 max-w-sm text-sm text-gray-300">
               Share your thoughts, stories, and ideas with the world through our beautiful blogging platform.
             </p>
             <div className="flex mt-4 space-x-4 text-xl">
+              {/* External Links remain <a> */}
               <a
                 href="https://twitter.com"
                 target="_blank"
@@ -69,23 +79,25 @@ function Footer() {
               </a>
             </div>
             <p className="mt-6 text-xs text-gray-500">
-              &copy; {new Date().getFullYear()} YourBrand. All rights reserved.
+              &copy; {new Date().getFullYear()} Narratica. All rights reserved.
             </p>
           </div>
 
+          {/* Footer Columns */}
           <FooterColumn title="Company" links={["Features", "Pricing", "Affiliate Program", "Press Kit"]} />
           <FooterColumn title="Support" links={["Account", "Help", "Contact Us", "Customer Support"]} />
           <FooterColumn title="Legals" links={["Terms & Conditions", "Privacy Policy", "Licensing"]} />
         </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-800 text-center">
+        {/* Newsletter */}
+        <div className="mt-12 pt-8 border-t border-[#2d223d] text-center">
           <div className="inline-flex items-center">
             <span className="text-sm text-gray-400">Subscribe to our newsletter</span>
             <div className="ml-4 relative">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="bg-gray-800/50 border border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300 w-64"
+                className="bg-[#2a1f3d]/50 border border-[#3b2d50] rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300 w-64 text-white"
               />
               <button className="absolute right-1 top-1 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-1 transition-colors duration-300">
                 <svg
@@ -103,8 +115,9 @@ function Footer() {
         </div>
       </div>
 
+      {/* Bottom wave */}
       <div className="absolute bottom-0 left-0 right-0">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="text-gray-950 opacity-20">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="text-[#160C22] opacity-20">
           <path
             fill="currentColor"
             d="M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,224C1248,203,1344,181,1392,170.7L1440,160L1440,320H0Z"
@@ -112,12 +125,13 @@ function Footer() {
         </svg>
       </div>
 
+      {/* Footer animation */}
       <style jsx="true">{`
         .background-animate {
           background-size: 200%;
           animation: gradient 3s ease infinite;
         }
-        
+
         @keyframes gradient {
           0% {
             background-position: 0% 50%;
@@ -129,12 +143,12 @@ function Footer() {
             background-position: 0% 50%;
           }
         }
-        
+
         .particle {
           opacity: 0.3;
           animation: float linear infinite;
         }
-        
+
         @keyframes float {
           0% {
             transform: translateY(0) translateX(0);
@@ -155,7 +169,7 @@ function Footer() {
         }
       `}</style>
     </section>
-  )
+  );
 }
 
 function FooterColumn({ title, links }) {
@@ -178,7 +192,7 @@ function FooterColumn({ title, links }) {
         ))}
       </ul>
     </div>
-  )
+  );
 }
 
-export default Footer
+export default Footer;
